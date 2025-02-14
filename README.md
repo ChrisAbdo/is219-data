@@ -3,3 +3,27 @@
 ### Essential Question:
 
 Which industries are most likely to secure an investment, and what might this suggest about investor preferences?
+
+### Some more questions:
+Industry Trends:
+
+Which industries are most likely to secure an investment?
+What is the average deal size or equity percentage in each industry?
+Do certain industries have higher or lower success rates in securing investments?
+Founder Demographics & Success:
+
+Is there a relationship between the founder's gender and the likelihood of getting funded?
+How do solo founders compare to co-founders in terms of deal success?
+Financial Aspects of the Deals:
+
+How does the requested funding amount relate to the equity offered?
+What are the valuation differences between companies that received investments versus those that did not?
+Are higher funding requests associated with better business outcomes?
+Investor Behavior and Preferences:
+
+Do certain investors or types of investment (e.g., Equity vs. Royalty) show a preference for specific industries?
+What does the pattern of investments tell us about investor risk tolerance or valuation expectations?
+Business Outcomes:
+
+What are the post-show business statuses (e.g., In Business, Out of Business, Acquired) across different industries or investment amounts?
+Are companies with certain deal structures or investment terms more likely to succeed in the long term?
