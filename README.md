@@ -2,6 +2,8 @@
 
 ### Essential Question:
 
+"Based on the outcomes of pitches on Shark Tank, is it worth it for entrepreneurs to appear on the show?"
+
 Which industries are most likely to secure an investment, and what might this suggest about investor preferences?
 
 What is the average return on investment (ROI) for entrepreneurs who accept deals on Shark Tank, measured by the difference between their initial valuation and final deal valuation? Is it ultimately worth it for entrepreneurs to accept deals on the show?

@@ -1,11 +1,22 @@
 import ValuationScatter from "@/components/valuation-scatter";
 import IndustryBoxPlot from "@/components/industry-boxplot";
 import OutcomeByIndustry from "@/components/outcome-by-industry";
+import ShowValueAnalysis from "@/components/show-value-analysis";
 
 export default function Home() {
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-8">Shark Tank Deal Analysis</h1>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">Show Value Analysis</h2>
+        <p className="mb-4">
+          Comparing business outcomes between entrepreneurs who received deals
+          versus those who didn't. This helps assess whether appearing on Shark
+          Tank is beneficial regardless of getting a deal.
+        </p>
+        <ShowValueAnalysis />
+      </section>
 
       <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">Outcome by Industry</h2>
