@@ -1,29 +1,21 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
+import { useSharkTankData, mappers, ValuationData } from "../lib/data";
 
 const ValuationScatter = () => {
-  const svgRef = useRef();
-  const [data, setData] = useState([]);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const { data, isLoading, isError } = useSharkTankData(mappers.valuation);
 
   useEffect(() => {
-    d3.csv("/data/sharktank.csv", (d) => ({
-      name: d.name,
-      ask_valuation: +d.ask_valuation,
-      deal_valuation: +d.deal_valuation,
-      category: d.category,
-      is_deal: d.is_deal.toLowerCase() === "true",
-    })).then((csvData) => {
-      // Filter out entries without valuations and ensure values are > 0 for log scale
-      const filteredData = csvData.filter(
-        (d) => d.is_deal && d.ask_valuation > 0 && d.deal_valuation > 0
-      );
-      setData(filteredData);
-    });
-  }, []);
+    if (isLoading || isError || !data.length || !svgRef.current) return;
 
-  useEffect(() => {
-    if (!data.length) return;
+    // Filter out entries without valuations and ensure values are > 0 for log scale
+    const filteredData = data.filter(
+      (d) => d.is_deal && d.ask_valuation > 0 && d.deal_valuation > 0
+    );
+
+    if (!filteredData.length) return;
 
     const width = 800;
     const height = 500;
@@ -35,20 +27,20 @@ const ValuationScatter = () => {
     // Create scales with proper domains
     const x = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.ask_valuation)])
+      .domain([0, d3.max(filteredData, (d) => d.ask_valuation) || 0])
       .nice()
       .range([margin.left, width - margin.right]);
 
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.deal_valuation)])
+      .domain([0, d3.max(filteredData, (d) => d.deal_valuation) || 0])
       .nice()
       .range([height - margin.bottom, margin.top]);
 
     // Add diagonal reference line (y=x)
     const maxVal = Math.max(
-      d3.max(data, (d) => d.ask_valuation),
-      d3.max(data, (d) => d.deal_valuation)
+      d3.max(filteredData, (d) => d.ask_valuation) || 0,
+      d3.max(filteredData, (d) => d.deal_valuation) || 0
     );
 
     svg
@@ -63,7 +55,7 @@ const ValuationScatter = () => {
     // Add points with tooltips
     svg
       .selectAll("circle")
-      .data(data)
+      .data(filteredData)
       .join("circle")
       .attr("cx", (d) => x(d.ask_valuation))
       .attr("cy", (d) => y(d.deal_valuation))
@@ -114,7 +106,10 @@ const ValuationScatter = () => {
       .attr("y", 30)
       .attr("text-anchor", "middle")
       .text("Deal Valuation ($)");
-  }, [data]);
+  }, [data, isLoading, isError]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error loading data</div>;
 
   return <svg ref={svgRef} width={800} height={500}></svg>;
 };

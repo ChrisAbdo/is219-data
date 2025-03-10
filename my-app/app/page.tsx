@@ -2,6 +2,7 @@ import ValuationScatter from "@/components/valuation-scatter";
 import IndustryBoxPlot from "@/components/industry-boxplot";
 import OutcomeByIndustry from "@/components/outcome-by-industry";
 import ShowValueAnalysis from "@/components/show-value-analysis";
+import ConclusionChart from "@/components/conclusion-chart";
 
 export default function Home() {
   return (
@@ -9,10 +10,27 @@ export default function Home() {
       <h1 className="text-3xl font-bold mb-8">Shark Tank Deal Analysis</h1>
 
       <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">Conclusion</h2>
+        <p className="mb-4">
+          Based on our analysis of Shark Tank data, we can definitively answer
+          our essential question: &ldquo;Do entrepreneurs who secure deals on
+          Shark Tank achieve better business outcomes than those who
+          don&apos;t?&rdquo;
+        </p>
+        <ConclusionChart />
+        <p className="mt-4 font-bold">
+          The data clearly shows that securing a deal on Shark Tank
+          significantly improves a business&apos;s chances of success. The
+          answer is YES - it is worth it for entrepreneurs to appear on Shark
+          Tank and secure a deal, even if they have to accept a lower valuation.
+        </p>
+      </section>
+
+      <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">Show Value Analysis</h2>
         <p className="mb-4">
           Comparing business outcomes between entrepreneurs who received deals
-          versus those who didn't. This helps assess whether appearing on Shark
+          versus those who didnt. This helps assess whether appearing on Shark
           Tank is beneficial regardless of getting a deal.
         </p>
         <ShowValueAnalysis />

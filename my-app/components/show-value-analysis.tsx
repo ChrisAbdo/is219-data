@@ -1,22 +1,14 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
+import { useSharkTankData, mappers, StatusAndDealData } from "../lib/data";
 
 const ShowValueAnalysis = () => {
-  const svgRef = useRef();
-  const [data, setData] = useState([]);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const { data, isLoading, isError } = useSharkTankData(mappers.statusAndDeal);
 
   useEffect(() => {
-    d3.csv("/data/sharktank.csv", (d) => ({
-      status: d.status,
-      is_deal: d.is_deal.toLowerCase() === "true",
-    })).then((csvData) => {
-      setData(csvData);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!data.length) return;
+    if (isLoading || isError || !data.length) return;
 
     const width = 800;
     const height = 500;
@@ -26,7 +18,7 @@ const ShowValueAnalysis = () => {
     const dealData = data.filter((d) => d.is_deal);
     const noDealData = data.filter((d) => !d.is_deal);
 
-    const calculateOutcomes = (dataset) => ({
+    const calculateOutcomes = (dataset: StatusAndDealData[]) => ({
       total: dataset.length,
       inBusiness: dataset.filter((d) => d.status === "In Business").length,
       acquired: dataset.filter((d) => d.status === "Acquired").length,
@@ -159,7 +151,10 @@ const ShowValueAnalysis = () => {
       .attr("y", margin.left / 3)
       .attr("text-anchor", "middle")
       .text("Percentage");
-  }, [data]);
+  }, [data, isLoading, isError]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error loading data</div>;
 
   return <svg ref={svgRef} width={800} height={500}></svg>;
 };

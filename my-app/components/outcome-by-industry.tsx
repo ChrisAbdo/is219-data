@@ -1,23 +1,16 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
+import { useSharkTankData, mappers, IndustryAndStatusData } from "../lib/data";
 
 const OutcomeByIndustry = () => {
-  const svgRef = useRef();
-  const [data, setData] = useState([]);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const { data, isLoading, isError } = useSharkTankData(
+    mappers.industryAndStatus
+  );
 
   useEffect(() => {
-    d3.csv("/data/sharktank.csv", (d) => ({
-      category: d.category,
-      status: d.status,
-      is_deal: d.is_deal.toLowerCase() === "true",
-    })).then((csvData) => {
-      setData(csvData);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!data.length) return;
+    if (isLoading || isError || !data.length || !svgRef.current) return;
 
     const width = 800;
     const height = 500;
@@ -66,26 +59,42 @@ const OutcomeByIndustry = () => {
     const statuses = ["inBusiness", "acquired", "outBusiness"];
     const colors = d3.schemeTableau10;
 
-    // Create stacked bars
-    statuses.forEach((status, i) => {
-      svg
-        .selectAll(`.bar-${status}`)
-        .data(chartData)
-        .join("rect")
-        .attr("class", `bar-${status}`)
-        .attr("x", (d) => x(d.category))
-        .attr("y", (d) => y(d[status] / d.total))
-        .attr("height", (d) => y(0) - y(d[status] / d.total))
-        .attr("width", x.bandwidth())
-        .attr("fill", colors[i])
-        .append("title")
-        .text(
-          (d) =>
-            `${d.category}\n${status}: ${((d[status] / d.total) * 100).toFixed(
-              1
-            )}%`
-        );
-    });
+    // Create stacked data
+    const stack = d3.stack().keys(statuses);
+    const stackedData = stack(
+      chartData.map((d) => {
+        const total = d.total;
+        return {
+          category: d.category,
+          inBusiness: d.inBusiness / total,
+          acquired: d.acquired / total,
+          outBusiness: d.outBusiness / total,
+        };
+      })
+    );
+
+    // Add bars
+    const groups = svg
+      .selectAll("g.status")
+      .data(stackedData)
+      .join("g")
+      .attr("class", "status")
+      .attr("fill", (d, i) => colors[i]);
+
+    groups
+      .selectAll("rect")
+      .data((d) => d)
+      .join("rect")
+      .attr("x", (d) => x(d.data.category) || 0)
+      .attr("y", (d) => y(d[1]))
+      .attr("height", (d) => y(d[0]) - y(d[1]))
+      .attr("width", x.bandwidth())
+      .append("title")
+      .text((d, i, nodes) => {
+        const status = d3.select(nodes[i].parentNode).datum().key;
+        const percentage = ((d[1] - d[0]) * 100).toFixed(1);
+        return `${d.data.category}\n${status}: ${percentage}%`;
+      });
 
     // Add axes
     svg
@@ -94,7 +103,9 @@ const OutcomeByIndustry = () => {
       .call(d3.axisBottom(x))
       .selectAll("text")
       .attr("transform", "rotate(-45)")
-      .attr("text-anchor", "end");
+      .attr("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", ".15em");
 
     svg
       .append("g")
@@ -109,8 +120,13 @@ const OutcomeByIndustry = () => {
         `translate(${width - margin.right + 10}, ${margin.top})`
       );
 
-    const legendLabels = ["In Business", "Acquired", "Out of Business"];
-    legendLabels.forEach((label, i) => {
+    const statusLabels = {
+      inBusiness: "In Business",
+      acquired: "Acquired",
+      outBusiness: "Out of Business",
+    };
+
+    statuses.forEach((status, i) => {
       const legendRow = legend
         .append("g")
         .attr("transform", `translate(0, ${i * 20})`);
@@ -121,16 +137,29 @@ const OutcomeByIndustry = () => {
         .attr("height", 15)
         .attr("fill", colors[i]);
 
-      legendRow.append("text").attr("x", 20).attr("y", 12).text(label);
+      legendRow
+        .append("text")
+        .attr("x", 20)
+        .attr("y", 12)
+        .text(statusLabels[status as keyof typeof statusLabels]);
     });
 
-    // Add labels
+    // Add title and labels
+    svg
+      .append("text")
+      .attr("x", width / 2)
+      .attr("y", margin.top / 2)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "16px")
+      .attr("font-weight", "bold")
+      .text("Business Outcomes by Industry");
+
     svg
       .append("text")
       .attr("x", width / 2)
       .attr("y", height - 10)
       .attr("text-anchor", "middle")
-      .text("Industry Category");
+      .text("Industry");
 
     svg
       .append("text")
@@ -138,8 +167,11 @@ const OutcomeByIndustry = () => {
       .attr("x", -height / 2)
       .attr("y", 20)
       .attr("text-anchor", "middle")
-      .text("Percentage of Companies");
-  }, [data]);
+      .text("Percentage");
+  }, [data, isLoading, isError]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error loading data</div>;
 
   return <svg ref={svgRef} width={800} height={500}></svg>;
 };

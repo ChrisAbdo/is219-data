@@ -1,26 +1,20 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
+import { useSharkTankData, mappers, ValuationDiffData } from "../lib/data";
 
 const IndustryBoxPlot = () => {
-  const svgRef = useRef();
-  const [data, setData] = useState([]);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const { data, isLoading, isError } = useSharkTankData(mappers.valuationDiff);
 
   useEffect(() => {
-    d3.csv("/data/sharktank.csv", (d) => ({
-      category: d.category,
-      valuation_diff: (+d.deal_valuation - +d.ask_valuation) / +d.ask_valuation,
-      is_deal: d.is_deal.toLowerCase() === "true",
-    })).then((csvData) => {
-      const filteredData = csvData.filter(
-        (d) => d.is_deal && !isNaN(d.valuation_diff)
-      );
-      setData(filteredData);
-    });
-  }, []);
+    if (isLoading || isError || !data.length || !svgRef.current) return;
 
-  useEffect(() => {
-    if (!data.length) return;
+    const filteredData = data.filter(
+      (d) => d.is_deal && !isNaN(d.valuation_diff)
+    );
+
+    if (!filteredData.length) return;
 
     const width = 800;
     const height = 500;
@@ -30,18 +24,18 @@ const IndustryBoxPlot = () => {
     svg.selectAll("*").remove();
 
     // Group data by category
-    const groupedData = d3.group(data, (d) => d.category);
+    const groupedData = d3.group(filteredData, (d) => d.category);
 
     // Calculate quartiles for each category
     const boxPlotData = Array.from(groupedData, ([key, values]) => {
       const sorted = values.map((d) => d.valuation_diff).sort(d3.ascending);
       return {
         category: key,
-        q1: d3.quantile(sorted, 0.25),
-        median: d3.quantile(sorted, 0.5),
-        q3: d3.quantile(sorted, 0.75),
-        min: d3.min(sorted),
-        max: d3.max(sorted),
+        q1: d3.quantile(sorted, 0.25) || 0,
+        median: d3.quantile(sorted, 0.5) || 0,
+        q3: d3.quantile(sorted, 0.75) || 0,
+        min: d3.min(sorted) || 0,
+        max: d3.max(sorted) || 0,
       };
     });
 
@@ -55,8 +49,8 @@ const IndustryBoxPlot = () => {
     const y = d3
       .scaleLinear()
       .domain([
-        d3.min(boxPlotData, (d) => d.min),
-        d3.max(boxPlotData, (d) => d.max),
+        d3.min(boxPlotData, (d) => d.min) || 0,
+        d3.max(boxPlotData, (d) => d.max) || 0,
       ])
       .nice()
       .range([height - margin.bottom, margin.top]);
@@ -132,7 +126,10 @@ const IndustryBoxPlot = () => {
       .attr("y", 20)
       .attr("text-anchor", "middle")
       .text("Valuation Change %");
-  }, [data]);
+  }, [data, isLoading, isError]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error loading data</div>;
 
   return <svg ref={svgRef} width={800} height={500}></svg>;
 };
