@@ -137,8 +137,7 @@ const ConclusionChart: React.FC = () => {
       .join("text")
       .attr("class", "failure-label")
       .attr("x", (d) => (x(d.group) || 0) + x.bandwidth() / 2)
-      // @ts-expect-error - Parameter 'd' is defined but never used
-      .attr("y", (d) => y(0) + 20)
+      .attr("y", () => y(0) + 20)
       .attr("text-anchor", "middle")
       .attr("font-size", "14px")
       .attr("fill", "white")
@@ -156,11 +155,9 @@ const ConclusionChart: React.FC = () => {
     svg
       .append("g")
       .attr("transform", `translate(${margin.left},0)`)
-      // @ts-expect-error - Unexpected any type
       .call(
         d3
           .axisLeft(y)
-          .tickFormat(d3.format(".0f") as any)
           .tickFormat((d) => `${d}%`)
       );
 
@@ -215,39 +212,54 @@ const ConclusionChart: React.FC = () => {
       .append("text")
       .attr("font-size", "16px")
       .attr("font-weight", "bold")
-      .text("Conclusion:");
+      .text("Key Findings:");
 
     conclusionText
       .append("text")
       .attr("y", 25)
       .attr("font-size", "14px")
-      .text(`Businesses with Shark Tank deals`);
+      .text(`Deal Success Rate: ${dealSuccessRate.toFixed(1)}%`);
 
     conclusionText
       .append("text")
       .attr("y", 45)
       .attr("font-size", "14px")
-      .text(`have a ${difference.toFixed(1)}% higher`);
+      .text(`No Deal Success Rate: ${noDealSuccessRate.toFixed(1)}%`);
 
     conclusionText
       .append("text")
       .attr("y", 65)
       .attr("font-size", "14px")
-      .text(`success rate than those without.`);
+      .attr("font-weight", "bold")
+      .text(`Difference: +${difference.toFixed(1)}%`);
 
     conclusionText
       .append("text")
       .attr("y", 95)
       .attr("font-size", "14px")
       .attr("font-weight", "bold")
-      .text(`Answer: YES, getting a deal`);
+      .text(`Concrete Answer: YES,`);
 
     conclusionText
       .append("text")
       .attr("y", 115)
       .attr("font-size", "14px")
       .attr("font-weight", "bold")
-      .text(`on Shark Tank is worth it.`);
+      .text(`appearing on Shark Tank`);
+
+    conclusionText
+      .append("text")
+      .attr("y", 135)
+      .attr("font-size", "14px")
+      .attr("font-weight", "bold")
+      .text(`and securing a deal`);
+
+    conclusionText
+      .append("text")
+      .attr("y", 155)
+      .attr("font-size", "14px")
+      .attr("font-weight", "bold")
+      .text(`is worth it.`);
   }, [data]);
 
   return <svg ref={svgRef} width={800} height={500}></svg>;
