@@ -82,6 +82,14 @@ export interface IndustryAndStatusData {
   is_deal: boolean;
 }
 
+// Add a new mapper for deal percentage equity data
+export interface EquityData {
+  category: string;
+  deal_perc_equity: number;
+  status: string;
+  is_deal: boolean;
+}
+
 // Predefined mappers for common data transformations
 export const mappers = {
   // Basic status and deal info
@@ -121,6 +129,14 @@ export const mappers = {
   // Industry and status data
   industryAndStatus: (d: DSVRowString<string>): IndustryAndStatusData => ({
     category: d.category,
+    status: d.status,
+    is_deal: d.is_deal.toLowerCase() === "true",
+  }),
+  
+  // Equity data for ROI analysis
+  equity: (d: DSVRowString<string>): EquityData => ({
+    category: d.category,
+    deal_perc_equity: +d.deal_perc_equity || 0,
     status: d.status,
     is_deal: d.is_deal.toLowerCase() === "true",
   }),

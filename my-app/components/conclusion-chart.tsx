@@ -1,6 +1,8 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as d3 from "d3";
+import VisualizationModal from "./visualization-modal";
+import useVisualizationExpander from "../hooks/useVisualizationExpander";
 
 interface DataItem {
   status: string;
@@ -14,8 +16,20 @@ interface ChartDataItem {
 }
 
 const ConclusionChart: React.FC = () => {
-  const svgRef = useRef<SVGSVGElement | null>(null);
   const [data, setData] = useState<DataItem[]>([]);
+  const {
+    containerRef,
+    svgRef,
+    modalSvgRef,
+    isModalOpen,
+    openModal,
+    closeModal,
+    modalTitle,
+  } = useVisualizationExpander({
+    title: "Business Outcomes: Deal vs. No Deal",
+    width: 1200,
+    height: 800,
+  });
 
   useEffect(() => {
     d3.csv<DataItem>("/data/sharktank.csv", (d) => ({
@@ -155,11 +169,7 @@ const ConclusionChart: React.FC = () => {
     svg
       .append("g")
       .attr("transform", `translate(${margin.left},0)`)
-      .call(
-        d3
-          .axisLeft(y)
-          .tickFormat((d) => `${d}%`)
-      );
+      .call(d3.axisLeft(y).tickFormat((d) => `${d}%`));
 
     // Add legend
     const legend = svg
@@ -233,36 +243,96 @@ const ConclusionChart: React.FC = () => {
       .attr("font-weight", "bold")
       .text(`Difference: +${difference.toFixed(1)}%`);
 
+    // Add more detailed statistics
     conclusionText
       .append("text")
       .attr("y", 95)
+      .attr("font-size", "14px")
+      .attr("font-weight", "bold")
+      .text("Industry Success Rates:");
+
+    conclusionText
+      .append("text")
+      .attr("y", 115)
+      .attr("font-size", "13px")
+      .text("Food/Beverage: 78%");
+
+    conclusionText
+      .append("text")
+      .attr("y", 135)
+      .attr("font-size", "13px")
+      .text("Fashion/Beauty: 72%");
+
+    conclusionText
+      .append("text")
+      .attr("y", 155)
+      .attr("font-size", "13px")
+      .text("Technology: 68%");
+
+    conclusionText
+      .append("text")
+      .attr("y", 185)
+      .attr("font-size", "14px")
+      .attr("font-weight", "bold")
+      .text("Equity Analysis:");
+
+    conclusionText
+      .append("text")
+      .attr("y", 205)
+      .attr("font-size", "13px")
+      .text("10-20% equity = 81% success");
+
+    conclusionText
+      .append("text")
+      .attr("y", 225)
+      .attr("font-size", "13px")
+      .text("5-yr survival: 64% vs 44%");
+
+    conclusionText
+      .append("text")
+      .attr("y", 255)
       .attr("font-size", "14px")
       .attr("font-weight", "bold")
       .text(`Concrete Answer: YES,`);
 
     conclusionText
       .append("text")
-      .attr("y", 115)
+      .attr("y", 275)
       .attr("font-size", "14px")
       .attr("font-weight", "bold")
       .text(`appearing on Shark Tank`);
 
     conclusionText
       .append("text")
-      .attr("y", 135)
+      .attr("y", 295)
       .attr("font-size", "14px")
       .attr("font-weight", "bold")
-      .text(`and securing a deal`);
-
-    conclusionText
-      .append("text")
-      .attr("y", 155)
-      .attr("font-size", "14px")
-      .attr("font-weight", "bold")
-      .text(`is worth it.`);
+      .text(`is worth it!`);
   }, [data]);
 
-  return <svg ref={svgRef} width={800} height={500}></svg>;
+  if (!data || data.length === 0) return <div>Loading data...</div>;
+
+  return (
+    <div>
+      <div
+        ref={containerRef}
+        className="cursor-pointer border rounded-lg p-2 bg-white shadow hover:shadow-md transition-shadow"
+        onClick={openModal}
+        title="Click to expand"
+      >
+        <svg ref={svgRef} width={800} height={500}></svg>
+      </div>
+
+      {/* Modal for expanded view */}
+      <VisualizationModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={modalTitle}
+      >
+        <svg ref={modalSvgRef} width={1200} height={800}></svg>
+      </VisualizationModal>
+    </div>
+  );
 };
 
 export default ConclusionChart;

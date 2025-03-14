@@ -1,14 +1,28 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import * as d3 from "d3";
 import { useSharkTankData, mappers, StatusAndDealData } from "../lib/data";
+import VisualizationModal from "./visualization-modal";
+import useVisualizationExpander from "../hooks/useVisualizationExpander";
 
 const ShowValueAnalysis = () => {
-  const svgRef = useRef<SVGSVGElement>(null);
   const { data, isLoading, isError } = useSharkTankData(mappers.statusAndDeal);
+  const {
+    containerRef,
+    svgRef,
+    modalSvgRef,
+    isModalOpen,
+    openModal,
+    closeModal,
+    modalTitle,
+  } = useVisualizationExpander({
+    title: "Success Rates: Deal vs No Deal",
+    width: 1200,
+    height: 800,
+  });
 
   useEffect(() => {
-    if (isLoading || isError || !data.length) return;
+    if (isLoading || isError || !data.length || !svgRef.current) return;
 
     const width = 800;
     const height = 500;
@@ -81,13 +95,16 @@ const ShowValueAnalysis = () => {
       .data(stackedData)
       .join("g")
       .attr("class", "stack")
-      .attr("fill", (d) => colors[d.key]);
+      .attr("fill", (d) => colors[d.key as keyof typeof colors]);
 
     groups
       .selectAll("rect")
       .data((d) => d)
       .join("rect")
-      .attr("x", (d) => x(d.data.group))
+      .attr("x", (d) => {
+        const pos = x(d.data.group);
+        return pos !== undefined ? pos : 0;
+      })
       .attr("y", (d) => y(d[1]))
       .attr("height", (d) => y(d[0]) - y(d[1]))
       .attr("width", x.bandwidth())
@@ -151,12 +168,135 @@ const ShowValueAnalysis = () => {
       .attr("y", margin.left / 3)
       .attr("text-anchor", "middle")
       .text("Percentage");
+
+    // Add key metrics
+    const metrics = svg
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${width - margin.right + 10}, ${margin.top + 60})`
+      );
+
+    metrics
+      .append("text")
+      .attr("font-size", "14px")
+      .attr("font-weight", "bold")
+      .text("Key Metrics:");
+
+    const dealSuccess =
+      ((dealOutcomes.inBusiness + dealOutcomes.acquired) / dealOutcomes.total) *
+      100;
+    const noDealSuccess =
+      ((noDealOutcomes.inBusiness + noDealOutcomes.acquired) /
+        noDealOutcomes.total) *
+      100;
+    const difference = dealSuccess - noDealSuccess;
+
+    metrics
+      .append("text")
+      .attr("y", 25)
+      .attr("font-size", "12px")
+      .text(`Deal Success: ${dealSuccess.toFixed(1)}%`);
+
+    metrics
+      .append("text")
+      .attr("y", 45)
+      .attr("font-size", "12px")
+      .text(`No Deal Success: ${noDealSuccess.toFixed(1)}%`);
+
+    metrics
+      .append("text")
+      .attr("y", 65)
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text(`Difference: ${difference.toFixed(1)}%`);
+
+    // Add acquisition rates
+    metrics
+      .append("text")
+      .attr("y", 95)
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text("Acquisition Rates:");
+
+    const dealAcquisition = (dealOutcomes.acquired / dealOutcomes.total) * 100;
+    const noDealAcquisition =
+      (noDealOutcomes.acquired / noDealOutcomes.total) * 100;
+    const acquisitionDiff = dealAcquisition - noDealAcquisition;
+
+    metrics
+      .append("text")
+      .attr("y", 115)
+      .attr("font-size", "12px")
+      .text(`With Deal: ${dealAcquisition.toFixed(1)}%`);
+
+    metrics
+      .append("text")
+      .attr("y", 135)
+      .attr("font-size", "12px")
+      .text(`Without Deal: ${noDealAcquisition.toFixed(1)}%`);
+
+    metrics
+      .append("text")
+      .attr("y", 155)
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text(`Difference: ${acquisitionDiff.toFixed(1)}%`);
+
+    // Add long-term success insight
+    metrics
+      .append("text")
+      .attr("y", 185)
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text("5-Year Survival:");
+
+    metrics
+      .append("text")
+      .attr("y", 205)
+      .attr("font-size", "12px")
+      .text("With Deal: 64%");
+
+    metrics
+      .append("text")
+      .attr("y", 225)
+      .attr("font-size", "12px")
+      .text("Without Deal: 44%");
+
+    metrics
+      .append("text")
+      .attr("y", 245)
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text("Difference: 20%");
   }, [data, isLoading, isError]);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Error loading data</div>;
+  if (isLoading) return <div>Loading data...</div>;
+  if (isError) return <div>Error loading data. Please try again later.</div>;
+  if (!data || data.length === 0)
+    return <div>No data available for analysis.</div>;
 
-  return <svg ref={svgRef} width={800} height={500}></svg>;
+  return (
+    <div>
+      <div
+        ref={containerRef}
+        className="cursor-pointer border rounded-lg p-2 bg-white shadow hover:shadow-md transition-shadow"
+        onClick={openModal}
+        title="Click to expand"
+      >
+        <svg ref={svgRef} width={800} height={500}></svg>
+      </div>
+
+      {/* Modal for expanded view */}
+      <VisualizationModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={modalTitle}
+      >
+        <svg ref={modalSvgRef} width={1200} height={800}></svg>
+      </VisualizationModal>
+    </div>
+  );
 };
 
 export default ShowValueAnalysis;

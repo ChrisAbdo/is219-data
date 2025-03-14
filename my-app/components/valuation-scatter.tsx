@@ -1,11 +1,25 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import * as d3 from "d3";
-import { useSharkTankData, mappers, ValuationData } from "../lib/data";
+import { useSharkTankData, mappers } from "../lib/data";
+import VisualizationModal from "./visualization-modal";
+import useVisualizationExpander from "../hooks/useVisualizationExpander";
 
 const ValuationScatter = () => {
-  const svgRef = useRef<SVGSVGElement>(null);
   const { data, isLoading, isError } = useSharkTankData(mappers.valuation);
+  const {
+    containerRef,
+    svgRef,
+    modalSvgRef,
+    isModalOpen,
+    openModal,
+    closeModal,
+    modalTitle,
+  } = useVisualizationExpander({
+    title: "Asked vs. Deal Valuations",
+    width: 1200,
+    height: 800,
+  });
 
   useEffect(() => {
     if (isLoading || isError || !data.length || !svgRef.current) return;
@@ -106,12 +120,44 @@ const ValuationScatter = () => {
       .attr("y", 30)
       .attr("text-anchor", "middle")
       .text("Deal Valuation ($)");
+
+    // Add title
+    svg
+      .append("text")
+      .attr("x", width / 2)
+      .attr("y", margin.top / 2)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "16px")
+      .attr("font-weight", "bold")
+      .text("Asked vs. Deal Valuations");
   }, [data, isLoading, isError]);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Error loading data</div>;
+  if (isLoading) return <div>Loading data...</div>;
+  if (isError) return <div>Error loading data. Please try again later.</div>;
+  if (!data || data.length === 0)
+    return <div>No data available for analysis.</div>;
 
-  return <svg ref={svgRef} width={800} height={500}></svg>;
+  return (
+    <div>
+      <div
+        ref={containerRef}
+        className="cursor-pointer border rounded-lg p-2 bg-white shadow hover:shadow-md transition-shadow"
+        onClick={openModal}
+        title="Click to expand"
+      >
+        <svg ref={svgRef} width={800} height={500}></svg>
+      </div>
+
+      {/* Modal for expanded view */}
+      <VisualizationModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={modalTitle}
+      >
+        <svg ref={modalSvgRef} width={1200} height={800}></svg>
+      </VisualizationModal>
+    </div>
+  );
 };
 
 export default ValuationScatter;
