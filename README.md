@@ -1,5 +1,7 @@
 [Link to Kaggle Dataset](https://storage.googleapis.com/kaggle-data-sets/6576339/10621230/bundle/archive.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcp-kaggle-com%40kaggle-161607.iam.gserviceaccount.com%2F20250210%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250210T173103Z&X-Goog-Expires=259200&X-Goog-SignedHeaders=host&X-Goog-Signature=2353c7d79f5c7cb7e9db6171018df69c127bc12a3d166b3ce052fea33dd81cfd9b5b51e2b57a647a7ea21627011437aa9de1659df2abbaeafb8689b98c7876bc4c01dbf37ffaf9f59bd2bb315fd08353bab320703e5dcee426bcbc0d1c98506cbcf9ebc0ec4c7c691c9a818b69e102eb94581cbaffa2708322eff26b44fed2dbecbbc91328d586a7fa76cad1cec79301bfa289965475ad4108a44c7a37c3f424d4f4bd4621926d4fa4e8758649c3aa1e4db11346c9ff76b1bba33bffdb3c91227d17d678ec6e4f1d15697cce1e0c51fa480d95641a3f164e15d6286f1ac6f6ad5d24f54f0229641794cc06601bc83e576d224b8d7ea2c06559b4f7577cebbbe2)
 
+[Link to Presentation](https://docs.google.com/presentation/d/1vT57bHw1plX_1FDMDuAuXXjQsTa95evzyPCNfkCvC1U/edit?usp=sharing)
+
 ### Essential Question:
 
 "Based on the outcomes of pitches on Shark Tank, is it worth it for entrepreneurs to appear on the show?"
